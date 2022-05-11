@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { parseCookies, setCookie } from "nookies";
+import { SmartAxiosDefaults } from "../context/AuthContext";
 
 let cookies = parseCookies();
 let isRefreshing = false;
@@ -55,7 +56,9 @@ api.interceptors.response.use(
                 path: "/",
               });
 
-              api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+              const apiDefaults = api.defaults as SmartAxiosDefaults;
+
+              apiDefaults.headers["Authorization"] = `Bearer ${token}`;
 
               failedRequestsQueue.forEach((request) =>
                 request.onSuccess(token)
@@ -75,10 +78,8 @@ api.interceptors.response.use(
         return new Promise((resolve, rejected) => {
           failedRequestsQueue.push({
             onSuccess: (token: string) => {
-              if (!originalConfig?.headers) {
-                originalConfig.headers["Authorization"] = `Bearer ${token}`;
-                resolve(api(originalConfig));
-              }
+              originalConfig.headers["Authorization"] = `Bearer ${token}`;
+              resolve(api(originalConfig));
             },
             onFailure: (err: AxiosError) => {
               rejected(err);

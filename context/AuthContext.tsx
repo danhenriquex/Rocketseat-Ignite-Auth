@@ -1,7 +1,17 @@
+import {
+  AxiosRequestConfig,
+  AxiosRequestHeaders,
+  HeadersDefaults,
+} from "axios";
 import { useRouter } from "next/router";
 import { setCookie, parseCookies } from "nookies";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { api } from "../services/api";
+
+export interface SmartAxiosDefaults<D = any>
+  extends Omit<AxiosRequestConfig<D>, "headers"> {
+  headers: HeadersDefaults & AxiosRequestHeaders;
+}
 
 interface User {
   email: string;
@@ -67,8 +77,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         permissions,
         roles,
       });
+      const apiDefaults = api.defaults as SmartAxiosDefaults;
 
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      apiDefaults.headers["Authorization"] = `Bearer ${token}`;
 
       router.push("/dashboard");
     } catch (error) {
