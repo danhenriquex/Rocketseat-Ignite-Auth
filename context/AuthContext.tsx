@@ -4,7 +4,8 @@ import {
   HeadersDefaults,
 } from "axios";
 import { useRouter } from "next/router";
-import { setCookie, parseCookies } from "nookies";
+import Router from "next/router";
+import { setCookie, parseCookies, destroyCookie } from "nookies";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { api } from "../services/api";
 
@@ -34,6 +35,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+export function signOut() {
+  destroyCookie(undefined, "nextauth.token");
+  destroyCookie(undefined, "nextauth.refreshToken");
+
+  Router.push("/");
+}
+
 export const AuthContext = createContext({} as AuthContextData);
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -52,7 +60,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           setUser({ email, permissions, roles });
         })
-        .catch((error) => console.error(error));
+        .catch((error) => {
+          signOut();
+        });
     }
   }, []);
 
